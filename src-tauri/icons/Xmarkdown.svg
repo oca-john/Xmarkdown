@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512">
+  <!-- Generator: Adobe Illustrator 29.6.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 9)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #fff;
+      }
+
+      .st1 {
+        fill: url(#_未命名的渐变);
+      }
+    </style>
+    <linearGradient id="_未命名的渐变" data-name="未命名的渐变" x1="573.44" y1="1005.5" x2="-71.1" y2="153.73" gradientTransform="translate(0 -330)" gradientUnits="userSpaceOnUse">
+      <stop offset=".19" stop-color="#4f46e5"/>
+      <stop offset=".72" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <g id="_图层_1" data-name="图层_1">
+    <g id="_图层_11" data-name="_图层_1">
+      <rect class="st1" x=".55" y=".55" width="510.89" height="510.89" rx="193.72" ry="193.72"/>
+    </g>
+  </g>
+  <g id="_图层_3" data-name="图层_3">
+    <g>
+      <polygon class="st0" points="231.83 451.36 166.29 363.06 166.29 60.64 231.83 148.94 231.83 451.36"/>
+      <polygon class="st0" points="280.17 451.36 345.71 363.06 345.71 60.64 280.17 148.94 280.17 451.36"/>
+      <polygon class="st0" points="394.05 358.48 459.59 270.18 459.59 162.77 394.05 251.07 394.05 358.48"/>
+      <polygon class="st0" points="117.95 358.48 52.41 270.18 52.41 162.77 117.95 251.07 117.95 358.48"/>
+    </g>
+  </g>
+</svg>
