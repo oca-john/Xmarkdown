@@ -57,6 +57,20 @@ export function useMenuEvents() {
       setIsSettingsOpen(true);
     });
 
+    // 编辑操作
+    const unlistenUndo = listen("menu-undo", () => document.execCommand("undo"));
+    const unlistenRedo = listen("menu-redo", () => document.execCommand("redo"));
+    const unlistenCut = listen("menu-cut", () => document.execCommand("cut"));
+    const unlistenCopy = listen("menu-copy", () => document.execCommand("copy"));
+    const unlistenPaste = listen("menu-paste", () => {
+      navigator.clipboard.readText().then(text => {
+        document.execCommand("insertText", false, text);
+      }).catch(() => {
+        document.execCommand("paste");
+      });
+    });
+    const unlistenSelectAll = listen("menu-select-all", () => document.execCommand("selectAll"));
+
     // 清理函数
     return () => {
       unlistenNew.then((fn) => fn());
@@ -69,6 +83,13 @@ export function useMenuEvents() {
       unlistenSyncScroll.then((fn) => fn());
       unlistenAbout.then((fn) => fn());
       unlistenSettings.then((fn) => fn());
+      
+      unlistenUndo.then((fn) => fn());
+      unlistenRedo.then((fn) => fn());
+      unlistenCut.then((fn) => fn());
+      unlistenCopy.then((fn) => fn());
+      unlistenPaste.then((fn) => fn());
+      unlistenSelectAll.then((fn) => fn());
     };
   }, [newFile, openFile, openFolder, saveFile, saveFileAs, toggleSidebar, setViewMode, syncScroll, setSyncScroll, setIsSettingsOpen, setIsAboutOpen]);
 }

@@ -95,6 +95,10 @@ interface EditorState {
   syncScroll: boolean;
   setSyncScroll: (sync: boolean) => void;
   
+  // 光标位置
+  cursorPosition: { line: number; column: number };
+  setCursorPosition: (pos: { line: number; column: number }) => void;
+  
   // 重置编辑器
   resetEditor: () => void;
 }
@@ -115,9 +119,13 @@ export const useEditorStore = create<EditorState>((set) => ({
   syncScroll: true,
   setSyncScroll: (syncScroll) => set({ syncScroll }),
   
+  cursorPosition: { line: 1, column: 1 },
+  setCursorPosition: (cursorPosition) => set({ cursorPosition }),
+  
   resetEditor: () => set({
     content: "",
     filePath: null,
     isModified: false,
+    cursorPosition: { line: 1, column: 1 },
   }),
 }));

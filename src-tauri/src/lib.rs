@@ -108,21 +108,21 @@ fn get_menu_texts(lang: &str) -> MenuTexts {
 
 fn create_menu_with_lang<M: Manager<tauri::Wry>>(app: &M, lang: &str) -> tauri::Result<Menu<tauri::Wry>> {
     let t = get_menu_texts(lang);
-    
+
     // 文件菜单
     let file_menu = Submenu::with_items(
         app,
         t.file,
         true,
         &[
-            &MenuItem::with_id(app, "new", t.new, true, None::<&str>)?,
-            &MenuItem::with_id(app, "open", t.open, true, None::<&str>)?,
-            &MenuItem::with_id(app, "open_folder", t.open_folder, true, None::<&str>)?,
+            &MenuItem::with_id(app, "new", t.new, true, Some("CmdOrCtrl+N"))?,
+            &MenuItem::with_id(app, "open", t.open, true, Some("CmdOrCtrl+O"))?,
+            &MenuItem::with_id(app, "open_folder", t.open_folder, true, Some("CmdOrCtrl+Shift+O"))?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, "save", t.save, true, None::<&str>)?,
-            &MenuItem::with_id(app, "save_as", t.save_as, true, None::<&str>)?,
+            &MenuItem::with_id(app, "save", t.save, true, Some("CmdOrCtrl+S"))?,
+            &MenuItem::with_id(app, "save_as", t.save_as, true, Some("CmdOrCtrl+Shift+S"))?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::quit(app, Some(t.quit))?,
+            &MenuItem::with_id(app, "quit", t.quit, true, Some("CmdOrCtrl+Q"))?,
         ],
     )?;
 
@@ -132,15 +132,15 @@ fn create_menu_with_lang<M: Manager<tauri::Wry>>(app: &M, lang: &str) -> tauri::
         t.edit,
         true,
         &[
-            &PredefinedMenuItem::undo(app, Some(t.undo))?,
-            &PredefinedMenuItem::redo(app, Some(t.redo))?,
+            &MenuItem::with_id(app, "undo", t.undo, true, Some("CmdOrCtrl+Z"))?,
+            &MenuItem::with_id(app, "redo", t.redo, true, Some("CmdOrCtrl+Y"))?,
             &PredefinedMenuItem::separator(app)?,
-            &PredefinedMenuItem::cut(app, Some(t.cut))?,
-            &PredefinedMenuItem::copy(app, Some(t.copy))?,
-            &PredefinedMenuItem::paste(app, Some(t.paste))?,
-            &PredefinedMenuItem::select_all(app, Some(t.select_all))?,
+            &MenuItem::with_id(app, "cut", t.cut, true, Some("CmdOrCtrl+X"))?,
+            &MenuItem::with_id(app, "copy", t.copy, true, Some("CmdOrCtrl+C"))?,
+            &MenuItem::with_id(app, "paste", t.paste, true, Some("CmdOrCtrl+V"))?,
+            &MenuItem::with_id(app, "select_all", t.select_all, true, Some("CmdOrCtrl+A"))?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, "settings", t.settings, true, None::<&str>)?,
+            &MenuItem::with_id(app, "settings", t.settings, true, Some("CmdOrCtrl+Comma"))?,
         ],
     )?;
 
@@ -150,20 +150,27 @@ fn create_menu_with_lang<M: Manager<tauri::Wry>>(app: &M, lang: &str) -> tauri::
         t.view,
         true,
         &[
-            &MenuItem::with_id(app, "toggle_sidebar", t.toggle_sidebar, true, None::<&str>)?,
+            &MenuItem::with_id(app, "toggle_sidebar", t.toggle_sidebar, true, Some("CmdOrCtrl+B"))?,
             &PredefinedMenuItem::separator(app)?,
-            &MenuItem::with_id(app, "view_split", t.split_view, true, None::<&str>)?,
-            &MenuItem::with_id(app, "view_editor", t.editor_only, true, None::<&str>)?,
-            &MenuItem::with_id(app, "view_preview", t.preview_only, true, None::<&str>)?,
+            &MenuItem::with_id(app, "view_editor", t.editor_only, true, Some("CmdOrCtrl+1"))?,
+            &MenuItem::with_id(app, "view_split", t.split_view, true, Some("CmdOrCtrl+2"))?,
+            &MenuItem::with_id(app, "view_preview", t.preview_only, true, Some("CmdOrCtrl+3"))?,
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "toggle_sync_scroll", t.sync_scroll, true, None::<&str>)?,
         ],
     )?;
 
-    // 关于菜单项
-    let about_item = MenuItem::with_id(app, "about", t.about, true, None::<&str>)?;
+    // 关于菜单
+    let about_menu = Submenu::with_items(
+        app,
+        t.about,
+        true,
+        &[
+            &MenuItem::with_id(app, "about", t.about, true, Some("CmdOrCtrl+I"))?,
+        ],
+    )?;
 
-    Menu::with_items(app, &[&file_menu, &edit_menu, &view_menu, &about_item])
+    Menu::with_items(app, &[&file_menu, &edit_menu, &view_menu, &about_menu])
 }
 
 #[tauri::command]
@@ -171,6 +178,18 @@ fn update_menu_language(app: AppHandle, lang: String) -> Result<(), String> {
     let menu = create_menu_with_lang(&app, &lang).map_err(|e| e.to_string())?;
     app.set_menu(menu).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[tauri::command]
+fn get_linux_desktop_env() -> String {
+    #[cfg(target_os = "linux")]
+    {
+        std::env::var("XDG_CURRENT_DESKTOP").unwrap_or_default()
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        String::new()
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -193,46 +212,31 @@ pub fn run() {
         .on_menu_event(|app, event| {
             let window = app.get_webview_window("main").unwrap();
             match event.id().as_ref() {
-                "new" => {
-                    let _ = window.emit("menu-new", ());
-                }
-                "open" => {
-                    let _ = window.emit("menu-open", ());
-                }
-                "open_folder" => {
-                    let _ = window.emit("menu-open-folder", ());
-                }
-                "save" => {
-                    let _ = window.emit("menu-save", ());
-                }
-                "save_as" => {
-                    let _ = window.emit("menu-save-as", ());
-                }
-                "toggle_sidebar" => {
-                    let _ = window.emit("menu-toggle-sidebar", ());
-                }
-                "view_split" => {
-                    let _ = window.emit("menu-view", "split");
-                }
-                "view_editor" => {
-                    let _ = window.emit("menu-view", "editor");
-                }
-                "view_preview" => {
-                    let _ = window.emit("menu-view", "preview");
-                }
-                "toggle_sync_scroll" => {
-                    let _ = window.emit("menu-toggle-sync-scroll", ());
-                }
-                "about" => {
-                    let _ = window.emit("menu-about", ());
-                }
-                "settings" => {
-                    let _ = window.emit("menu-settings", ());
-                }
+                "new" => { let _ = window.emit("menu-new", ()); }
+                "open" => { let _ = window.emit("menu-open", ()); }
+                "open_folder" => { let _ = window.emit("menu-open-folder", ()); }
+                "save" => { let _ = window.emit("menu-save", ()); }
+                "save_as" => { let _ = window.emit("menu-save-as", ()); }
+                "quit" => { app.exit(0); }
+                
+                "undo" => { let _ = window.emit("menu-undo", ()); }
+                "redo" => { let _ = window.emit("menu-redo", ()); }
+                "cut" => { let _ = window.emit("menu-cut", ()); }
+                "copy" => { let _ = window.emit("menu-copy", ()); }
+                "paste" => { let _ = window.emit("menu-paste", ()); }
+                "select_all" => { let _ = window.emit("menu-select-all", ()); }
+                "settings" => { let _ = window.emit("menu-settings", ()); }
+                
+                "toggle_sidebar" => { let _ = window.emit("menu-toggle-sidebar", ()); }
+                "view_split" => { let _ = window.emit("menu-view", "split"); }
+                "view_editor" => { let _ = window.emit("menu-view", "editor"); }
+                "view_preview" => { let _ = window.emit("menu-view", "preview"); }
+                "toggle_sync_scroll" => { let _ = window.emit("menu-toggle-sync-scroll", ()); }
+                "about" => { let _ = window.emit("menu-about", ()); }
                 _ => {}
             }
         })
-        .invoke_handler(tauri::generate_handler![update_menu_language])
+        .invoke_handler(tauri::generate_handler![update_menu_language, get_linux_desktop_env])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Xmarkdown
+Comment=A simple Markdown editor
+Exec=xmarkdown %F
+Icon=xmarkdown
+Terminal=false
+Type=Application
+Categories=Office;TextEditor;Utility;
+MimeType=text/markdown;text/x-markdown;
+StartupWMClass=xmarkdown

@@ -1,6 +1,6 @@
 # Xmarkdown
 
-![Version](https://img.shields.io/badge/version-0.9.5-blue)
+![Version](https://img.shields.io/badge/version-0.9.8-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey)
 
@@ -70,4 +70,4 @@ Made with ♥️ by Oca John
 
 ---
 
-**Xmarkdown** v0.9.5 — *轻量优雅，专注书写。*
+**Xmarkdown** v0.9.8 — *轻量优雅，专注书写。*

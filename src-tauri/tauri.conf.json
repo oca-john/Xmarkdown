@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Xmarkdown",
-  "version": "0.9.5",
+  "version": "0.9.8",
   "identifier": "com.xmarkdown.app",
   "build": {
     "frontendDist": "../dist",
@@ -38,12 +38,22 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "windows": {
-      "wix": {
-        "language": "zh-CN"
+    "resources": [
+      "icons/menu/*"
+    ],
+    "linux": {
+      "deb": {
+        "desktopTemplate": "assets/xmarkdown.desktop"
       },
+      "rpm": {
+        "desktopTemplate": "assets/xmarkdown.desktop"
+      }
+    },
+    "windows": {
       "nsis": {
         "installerIcon": "icons/icon.ico",
+        "headerImage": "icons/icon.ico",
+        "sidebarImage": "icons/icon.ico",
         "languages": [
           "SimpChinese",
           "TradChinese",

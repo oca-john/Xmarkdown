@@ -1,7 +1,7 @@
 // 软件版本号 - 唯一来源
 // 使用 scripts/sync-version.js 同步到整个项目
 
-export const VERSION = "0.9.5";
+export const VERSION = "0.9.8";
 export const APP_NAME = "Xmarkdown";
 export const AUTHOR = "Oca John";
 export const DESCRIPTION = {

@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { invoke } from "@tauri-apps/api/core";
 
 function App() {
-  const { viewMode } = useEditorStore();
+  const { viewMode, cursorPosition } = useEditorStore();
   const { theme, language, defaultViewMode, defaultSidebarOpen, isSidebarOpen, setIsSidebarOpen } = useSettingsStore();
   const { t } = useTranslation(language);
   const [scrollPercent, setScrollPercent] = useState<number | undefined>(undefined);
@@ -47,6 +47,17 @@ function App() {
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
+
+  // 检测 Linux 桌面环境
+  useEffect(() => {
+    invoke<string>("get_linux_desktop_env")
+      .then((env) => {
+        if (env && env.toUpperCase().includes("KDE")) {
+          document.documentElement.classList.add("qt-style");
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   // 初始化默认视图模式和侧栏状态
   useEffect(() => {
@@ -181,14 +192,19 @@ function App() {
 
       {/* 状态栏 */}
       <div className="flex-shrink-0 flex items-center justify-between border-t bg-muted/50 px-4 py-0.5 text-xs text-muted-foreground select-none">
-        <span>{t("statusBar.madeBy")}</span>
-        <span>
-          {viewMode === "split"
-            ? t("viewMode.split")
-            : viewMode === "editor"
-            ? t("viewMode.editor")
-            : t("viewMode.preview")}
-        </span>
+        <div className="flex items-center gap-4">
+          <span>{t("statusBar.madeBy")}</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span>Ln {cursorPosition.line}, Col {cursorPosition.column}</span>
+          <span>
+            {viewMode === "split"
+              ? t("viewMode.split")
+              : viewMode === "editor"
+              ? t("viewMode.editor")
+              : t("viewMode.preview")}
+          </span>
+        </div>
       </div>
 
       {/* 设置对话框 */}

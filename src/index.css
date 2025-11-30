@@ -26,6 +26,51 @@
     --radius: 0.5rem;
   }
 
+  .qt-style {
+    --radius: 0.25rem;
+    font-family: "Noto Sans", "Segoe UI", sans-serif;
+    
+    /* Breeze Light Colors */
+    --background: 210 5% 94%;
+    --foreground: 210 5% 15%;
+    --card: 210 5% 94%;
+    --card-foreground: 210 5% 15%;
+    --popover: 210 5% 94%;
+    --popover-foreground: 210 5% 15%;
+    --primary: 203 83% 57%; /* #3daee9 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 5% 96%;
+    --secondary-foreground: 210 5% 15%;
+    --muted: 210 5% 90%;
+    --muted-foreground: 210 5% 40%;
+    --accent: 203 83% 57%;
+    --accent-foreground: 0 0% 100%;
+    --border: 210 5% 85%;
+    --input: 210 5% 96%;
+    --ring: 203 83% 57%;
+  }
+
+  .qt-style.dark, .dark .qt-style {
+    /* Breeze Dark Colors */
+    --background: 210 9% 21%;
+    --foreground: 0 0% 94%;
+    --card: 210 9% 23%;
+    --card-foreground: 0 0% 94%;
+    --popover: 210 9% 23%;
+    --popover-foreground: 0 0% 94%;
+    --primary: 203 83% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 9% 25%;
+    --secondary-foreground: 0 0% 94%;
+    --muted: 210 9% 25%;
+    --muted-foreground: 210 5% 60%;
+    --accent: 203 83% 57%;
+    --accent-foreground: 0 0% 100%;
+    --border: 210 9% 30%;
+    --input: 210 9% 25%;
+    --ring: 203 83% 57%;
+  }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;

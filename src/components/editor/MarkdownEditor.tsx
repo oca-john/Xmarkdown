@@ -14,13 +14,12 @@ interface MarkdownEditorProps {
 }
 
 export function MarkdownEditor({ onScroll, scrollPercent, scrollSource }: MarkdownEditorProps) {
-  const { content, setContent, syncScroll } = useEditorStore();
+  const { content, setContent, syncScroll, setCursorPosition } = useEditorStore();
   const { theme } = useSettingsStore();
   const editorRef = useRef<HTMLDivElement>(null);
   const cmRef = useRef<ReactCodeMirrorRef>(null);
   const isProgrammaticScrollRef = useRef(false);
   const lastScrollPercentRef = useRef<number | undefined>(undefined);
-  const isAtBoundaryRef = useRef(false);
 
   // 计算实际主题
   const isDark = useMemo(() => {
@@ -43,23 +42,16 @@ export function MarkdownEditor({ onScroll, scrollPercent, scrollSource }: Markdo
       if (!syncScroll || !onScroll || isProgrammaticScrollRef.current) return;
 
       const scrollDOM = view.scrollDOM;
-      const scrollTop = scrollDOM.scrollTop;
-      const maxScroll = scrollDOM.scrollHeight - scrollDOM.clientHeight;
+      const { scrollTop, scrollHeight, clientHeight } = scrollDOM;
+      const maxScroll = scrollHeight - clientHeight;
 
       // 如果无法滚动（内容不超过容器），不触发同步
       if (maxScroll <= 0) return;
 
+      // 默认同步逻辑
       const percent = (scrollTop / maxScroll) * 100;
-      const clampedPercent = Math.min(100, Math.max(0, percent));
       
-      // 检测是否在边界位置（已经到顶或到底）
-      const isAtBoundary = scrollTop <= 0 || scrollTop >= maxScroll - 1;
-      
-      // 如果上一次已经在边界位置，且这次仍在边界，不再触发同步（防止循环）
-      if (isAtBoundaryRef.current && isAtBoundary) return;
-      isAtBoundaryRef.current = isAtBoundary;
-      
-      onScroll(clampedPercent);
+      onScroll(percent);
     },
     [syncScroll, onScroll]
   );
@@ -73,9 +65,13 @@ export function MarkdownEditor({ onScroll, scrollPercent, scrollSource }: Markdo
     isProgrammaticScrollRef.current = true;
     const view = cmRef.current.view;
     const scrollDOM = view.scrollDOM;
-    const maxScroll = scrollDOM.scrollHeight - scrollDOM.clientHeight;
+    const { scrollHeight, clientHeight } = scrollDOM;
+    const maxScroll = scrollHeight - clientHeight;
     
-    scrollDOM.scrollTop = (scrollPercent / 100) * maxScroll;
+    // 计算目标 scrollTop (默认逻辑)
+    const targetScrollTop = (scrollPercent / 100) * maxScroll;
+    
+    scrollDOM.scrollTop = targetScrollTop;
     
     setTimeout(() => {
       isProgrammaticScrollRef.current = false;
@@ -91,6 +87,22 @@ export function MarkdownEditor({ onScroll, scrollPercent, scrollSource }: Markdo
         },
       }),
     [handleScroll]
+  );
+
+  // 监听光标位置变化
+  const updateListener = useMemo(() => 
+    EditorView.updateListener.of((update) => {
+      if (update.selectionSet) {
+        const state = update.state;
+        const pos = state.selection.main.head;
+        const line = state.doc.lineAt(pos);
+        setCursorPosition({
+          line: line.number,
+          column: pos - line.from + 1
+        });
+      }
+    }),
+    [setCursorPosition]
   );
 
   // 自定义主题 - 支持深色模式
@@ -155,6 +167,7 @@ export function MarkdownEditor({ onScroll, scrollPercent, scrollSource }: Markdo
           markdownKeymap,
           scrollExtension,
           customTheme,
+          updateListener,
           EditorView.lineWrapping,
         ]}
         onChange={handleChange}

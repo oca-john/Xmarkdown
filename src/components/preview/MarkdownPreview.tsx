@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -16,53 +16,121 @@ interface MarkdownPreviewProps {
   onScroll?: (scrollPercent: number) => void;
 }
 
+// 小文档阈值（字符数），低于此值的文档会等待完整渲染后再启用滚动同步
+const SMALL_DOCUMENT_THRESHOLD = 10000;
+
 export function MarkdownPreview({ scrollPercent, scrollSource, onScroll }: MarkdownPreviewProps) {
   const { content, syncScroll } = useEditorStore();
+  
+  // Mermaid 渲染跟踪
+  const [mermaidRenderedCount, setMermaidRenderedCount] = useState(0);
+  const mermaidRenderedCountRef = useRef(0);
+  const lastContentRef = useRef<string>("");
+
   const previewRef = useRef<HTMLDivElement>(null);
   const isProgrammaticScrollRef = useRef(false);
   const lastScrollPercentRef = useRef<number | undefined>(undefined);
-  const isAtBoundaryRef = useRef(false);
+  const lastScrollHeightRef = useRef<number>(0);
+  
+  // 计算文档中的 Mermaid 块数量
+  const mermaidBlockCount = useMemo(() => {
+    const matches = content.match(/```mermaid[\s\S]*?```/g);
+    return matches ? matches.length : 0;
+  }, [content]);
+  
+  // 判断是否为小文档
+  const isSmallDocument = content.length < SMALL_DOCUMENT_THRESHOLD;
+  
+  // 判断是否所有 Mermaid 块都已渲染完成
+  const allMermaidRendered = mermaidBlockCount === 0 || mermaidRenderedCount >= mermaidBlockCount;
+  
+  // 小文档且含有 Mermaid 时，需等待渲染完成才启用滚动同步
+  const scrollSyncReady = !isSmallDocument || allMermaidRendered;
+  
+  // 内容变化时重置 Mermaid 渲染计数
+  useEffect(() => {
+    if (content !== lastContentRef.current) {
+      lastContentRef.current = content;
+      mermaidRenderedCountRef.current = 0;
+      setMermaidRenderedCount(0);
+    }
+  }, [content]);
+  
+  // Mermaid 渲染完成回调 - 使用 ref 避免触发重新渲染
+  const handleMermaidRenderComplete = useCallback(() => {
+    mermaidRenderedCountRef.current += 1;
+    // 只有当所有 Mermaid 块都渲染完成时才更新状态
+    if (mermaidRenderedCountRef.current >= mermaidBlockCount) {
+      setMermaidRenderedCount(mermaidRenderedCountRef.current);
+    }
+  }, [mermaidBlockCount]);
 
   // 从编辑器同步滚动到预览 - 使用默认百分比同步
   useEffect(() => {
     if (scrollSource !== "editor" || scrollPercent === undefined || !previewRef.current) return;
+    // 小文档且 Mermaid 未渲染完成时，不执行滚动同步
+    if (!scrollSyncReady) return;
     if (lastScrollPercentRef.current === scrollPercent) return;
     lastScrollPercentRef.current = scrollPercent;
 
     isProgrammaticScrollRef.current = true;
     const element = previewRef.current;
-    const maxScroll = element.scrollHeight - element.clientHeight;
+    const { scrollHeight, clientHeight } = element;
+    const maxScroll = scrollHeight - clientHeight;
     
-    element.scrollTop = (scrollPercent / 100) * maxScroll;
+    // 计算目标 scrollTop (默认逻辑)
+    const targetScrollTop = (scrollPercent / 100) * maxScroll;
+    
+    element.scrollTop = targetScrollTop;
+    lastScrollHeightRef.current = scrollHeight;
 
     setTimeout(() => {
       isProgrammaticScrollRef.current = false;
     }, 150);
-  }, [scrollPercent, scrollSource]);
+  }, [scrollPercent, scrollSource, scrollSyncReady]);
+
+  // 监听内容高度变化（如流程图渲染后高度增加），重新应用滚动位置
+  useEffect(() => {
+    if (!previewRef.current || scrollPercent === undefined) return;
+    
+    const element = previewRef.current;
+    
+    const observer = new ResizeObserver(() => {
+      if (isProgrammaticScrollRef.current) return;
+      
+      const { scrollHeight, clientHeight } = element;
+      const maxScroll = scrollHeight - clientHeight;
+      
+      // 如果高度变化且有有效的滚动百分比，重新应用滚动位置
+      if (scrollHeight !== lastScrollHeightRef.current && maxScroll > 0 && lastScrollPercentRef.current !== undefined) {
+        const targetScrollTop = (lastScrollPercentRef.current / 100) * maxScroll;
+        element.scrollTop = targetScrollTop;
+        lastScrollHeightRef.current = scrollHeight;
+      }
+    });
+    
+    observer.observe(element);
+    
+    return () => observer.disconnect();
+  }, [scrollPercent]);
 
   // 处理预览区滚动事件 - 使用默认百分比同步
   const handleScroll = useCallback(() => {
-    if (!syncScroll || !onScroll || isProgrammaticScrollRef.current || !previewRef.current) return;
+    // 小文档且 Mermaid 未渲染完成时，不触发滚动同步
+    if (!syncScroll || !onScroll || isProgrammaticScrollRef.current || !previewRef.current || !scrollSyncReady) return;
     
     const element = previewRef.current;
-    const scrollTop = element.scrollTop;
-    const maxScroll = element.scrollHeight - element.clientHeight;
+    const { scrollTop, scrollHeight, clientHeight } = element;
+    const maxScroll = scrollHeight - clientHeight;
     
     // 如果无法滚动（内容不超过容器），不触发同步
     if (maxScroll <= 0) return;
     
+    // 默认同步逻辑
     const percent = (scrollTop / maxScroll) * 100;
-    const clampedPercent = Math.min(100, Math.max(0, percent));
     
-    // 检测是否在边界位置（已经到顶或到底）
-    const isAtBoundary = scrollTop <= 0 || scrollTop >= maxScroll - 1;
-    
-    // 如果上一次已经在边界位置，且这次仍在边界，不再触发同步（防止循环）
-    if (isAtBoundaryRef.current && isAtBoundary) return;
-    isAtBoundaryRef.current = isAtBoundary;
-    
-    onScroll(clampedPercent);
-  }, [syncScroll, onScroll]);
+    onScroll(percent);
+  }, [syncScroll, onScroll, scrollSyncReady]);
 
   return (
     <div
@@ -93,7 +161,7 @@ export function MarkdownPreview({ scrollPercent, scrollSource, onScroll }: Markd
 
             // Mermaid 图表
             if (language === "mermaid") {
-              return <MermaidBlock code={codeString} />;
+              return <MermaidBlock code={codeString} onRenderComplete={handleMermaidRenderComplete} />;
             }
 
             // 内联代码
