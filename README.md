@@ -6,6 +6,12 @@
 
 一款高性能、跨平台的 Markdown 编辑器，基于 Tauri 2.0 + React + TypeScript 构建。
 
+![亮色主题](C:\Users\oca-j\AppData\Roaming\Typora\typora-user-images\image-20260202105734765.png)
+
+![暗色主题](C:\Users\oca-j\AppData\Roaming\Typora\typora-user-images\image-20260202105816935.png)
+
+![设置面板](C:\Users\oca-j\AppData\Roaming\Typora\typora-user-images\image-20260202105851891.png)
+
 ## 功能特性
 
 - **实时预览**: 左侧编辑，右侧实时渲染
