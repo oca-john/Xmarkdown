@@ -6,6 +6,8 @@
 
 一款高性能、跨平台的 Markdown 编辑器，基于 Tauri 2.0 + React + TypeScript 构建。
 
+## 界面预览
+
 <table border="0">
   <tr>
     <td align="center" valign="bottom">
