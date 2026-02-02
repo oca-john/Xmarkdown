@@ -6,11 +6,11 @@
 
 一款高性能、跨平台的 Markdown 编辑器，基于 Tauri 2.0 + React + TypeScript 构建。
 
-![亮色主题](../src/images/theme-light.png)
+![亮色主题](./src/images/theme-light.png)
 
-![暗色主题](../src/imagestheme-dark.png)
+![暗色主题](./src/images/theme-dark.png)
 
-![设置面板](../src/imagessetting-panel.png)
+![设置面板](./src/images/setting-panel.png)
 
 ## 功能特性
 
