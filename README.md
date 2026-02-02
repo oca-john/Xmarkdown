@@ -8,22 +8,29 @@
 
 <table border="0">
   <tr>
-    <td>
-      <a href="link_to_image1"><img src="./src/images/theme-light.png" width="200"></a>
+    <td align="center" valign="bottom">
+      <a href="./src/images/theme-light.png">
+        <img src="./src/images/theme-light.png" width="200">
+      </a>
+      <br>
       <p align="center">亮色主题</p>
     </td>
-    <td>
-      <a href="link_to_image2"><img src="./src/images/theme-dark.png" width="200"></a>
+    <td align="center" valign="bottom">
+      <a href="./src/images/theme-dark.png">
+        <img src="./src/images/theme-dark.png" width="200">
+      </a>
+      <br>
       <p align="center">暗色主题</p>
     </td>
-    <td>
-      <a href="link_to_image3"><img src="./src/images/setting-panel.png" width="200"></a>
+    <td align="center" valign="bottom">
+      <a href="./src/images/setting-panel.png">
+        <img src="./src/images/setting-panel.png" width="200">
+      </a>
+      <br>
       <p align="center">设置面板</p>
     </td>
   </tr>
 </table>
-
-
 ## 功能特性
 
 - **实时预览**: 左侧编辑，右侧实时渲染
